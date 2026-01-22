@@ -1,0 +1,17 @@
+# Backend (Java / Maven)
+**/target/
+*.log
+
+# Frontend (Node / React)
+**/node_modules/
+**/dist/
+
+# JMeter (résultats générés)
+performance/rapport/
+performance/resultats.jtl
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

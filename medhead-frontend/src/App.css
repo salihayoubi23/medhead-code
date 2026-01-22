@@ -1,0 +1,37 @@
+.page {
+  min-height: 100vh;
+  background: radial-gradient(1200px 600px at 20% 0%, #eaf2ff 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 10%, #e9fbf4 0%, transparent 55%),
+    #f6f8fb;
+}
+
+.card {
+  border-radius: 18px;
+}
+
+.metric.card {
+  border-radius: 16px;
+}
+
+.btn-lg {
+  border-radius: 14px;
+}
+
+.form-select,
+.form-control {
+  border-radius: 12px;
+}
+
+.badge {
+  letter-spacing: 0.2px;
+}
+/* Petit polish visuel sans casser Bootstrap */
+.stat-card {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
