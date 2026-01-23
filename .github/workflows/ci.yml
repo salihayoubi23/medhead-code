@@ -1,0 +1,53 @@
+name: Integration continue
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend:
+    name: Vérification backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: medhead-backend
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Tests backend
+        run: mvn test
+
+      - name: Build backend
+        run: mvn package -DskipTests
+
+  frontend:
+    name: Vérification frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: medhead-frontend
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Installer les dépendances
+        run: npm install
+
+      - name: Build frontend
+        run: npm run build
