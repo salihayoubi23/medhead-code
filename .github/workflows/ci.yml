@@ -29,7 +29,15 @@ jobs:
           cache: maven
 
       - name: Tests backend (profil test + H2)
-        run: ./mvnw -B -e -DtrimStackTrace=false -Dspring.profiles.active=test test
+        run: >
+          ./mvnw -B -e -DtrimStackTrace=false
+          -Dspring.profiles.active=test
+          -Dspring.datasource.url=jdbc:h2:mem:medhead_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+          -Dspring.datasource.driver-class-name=org.h2.Driver
+          -Dspring.datasource.username=sa
+          -Dspring.datasource.password=
+          -Dspring.jpa.hibernate.ddl-auto=create-drop
+          test
 
       - name: Upload surefire reports (always)
         if: always()
