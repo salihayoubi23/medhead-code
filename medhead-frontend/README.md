@@ -1,41 +1,36 @@
-
-# MedHead – Frontend (React + Vite) – PoC
+# 🖥️ MedHead – Frontend (React + Vite) – Proof of Concept
 
 Frontend de la preuve de concept (PoC) **MedHead Consortium**.
 
-Cette application web permet :
+Cette application web permet de démontrer un parcours fonctionnel complet :
 
--   de sélectionner une spécialité médicale (référentiel NHS exposé par le backend) ;
+-   sélection d’une spécialité médicale
     
--   de sélectionner une zone d’origine ;
+-   sélection d’une zone d’origine
     
--   d’obtenir une recommandation d’hôpital (distance/durée calculées via ORS) ;
+-   recommandation d’un hôpital en fonction du temps de trajet réel (ORS)
     
--   de réserver un lit dans l’hôpital recommandé (mise à jour des lits côté backend).
+-   réservation d’un lit en temps réel
     
 
-Le frontend consomme une API Spring Boot (backend MedHead).
+Le frontend consomme une API REST Spring Boot.
 
 ----------
 
-## Objectif de la PoC
+## 🎯 Objectifs de la PoC
 
-L’objectif est de démontrer :
-
--   un parcours fonctionnel “end-to-end” (recommandation → réservation),
+-   démontrer une intégration front/back fonctionnelle
     
--   une intégration front/back simple et claire,
+-   proposer une interface simple et opérationnelle
     
--   une UI minimale mais opérationnelle,
+-   valider les échanges API en temps réel
     
--   une base saine pour évoluer vers une solution industrialisée.
+-   offrir une base évolutive vers une solution industrialisée
     
 
 ----------
 
-## Stack technique
-
-Frontend :
+## 🧱 Stack technique
 
 -   React
     
@@ -43,192 +38,187 @@ Frontend :
     
 -   Bootstrap
     
--   JavaScript (ES6+)
+-   JavaScript ES6+
     
 
-Dépendance backend :
+Backend associé :
 
 -   Spring Boot (API REST)
     
--   PostgreSQL (persistance des hôpitaux / zones / lits)
+-   PostgreSQL (persistance)
     
--   OpenRouteService (ORS) pour distance/durée “route réelle”
+-   OpenRouteService (distance et durée réelles)
     
 
 ----------
 
-## Prérequis
+## ⚙️ Prérequis
 
--   Node.js 18+ (recommandé)
+-   Node.js 18+
     
 -   npm
     
--   Backend MedHead démarré (par défaut sur `http://localhost:8080`)
+-   Backend MedHead démarré sur [http://localhost:8080](http://localhost:8080)
     
 
 ----------
 
-## Installation et lancement
+## ▶️ Installation et lancement
 
-1.  Installer les dépendances :
+Se placer dans le dossier :
+
+cd medhead-frontend
+
+Installer les dépendances :
+
+npm install
+
+Lancer l’application :
+
+npm run dev
+
+Application disponible sur :
+
+[http://localhost:5173](http://localhost:5173)
+
+----------
+
+## 🔧 Configuration de l’API Backend
+
+L’URL du backend peut être configurée via variable d’environnement.
+
+Créer un fichier `.env` (optionnel) :
+
+VITE_API_BASE_URL=[http://localhost:8080](http://localhost:8080)
+
+Si non défini, l’URL par défaut est utilisée.
+
+----------
+
+## 🔄 Fonctionnement de l’application
+
+### 1️⃣ Sélection de la demande
+
+-   choix de la spécialité médicale
     
-
--   npm install
-    
-
-2.  Lancer le serveur de dev :
-    
-
--   npm run dev
-    
-
-L’application est disponible sur :
-
--   [http://localhost:5173](http://localhost:5173)
+-   choix de la zone d’origine
     
 
 ----------
 
-## Configuration de l’URL Backend
+### 2️⃣ Recommandation
 
-L’URL du backend est configurable via variable d’environnement.
+Appel :
 
-Dans un fichier `.env` à la racine du frontend (optionnel) :
+POST /recommendations
 
--   VITE_API_BASE_URL=[http://localhost:8080](http://localhost:8080)
-    
+Le backend :
 
-Si non défini, l’application utilise :
-
--   [http://localhost:8080](http://localhost:8080)
+-   filtre les hôpitaux par spécialité et lits disponibles
     
-
-----------
-
-## Fonctionnement de l’application
-
-1.  Sélection de la demande
+-   calcule distance et durée via ORS réel
     
-
--   Choix de la spécialité
-    
--   Choix de la zone d’origine
-    
-
-2.  Recommandation
-    
-
--   Appel : POST /recommendations
-    
--   Le backend filtre les hôpitaux (spécialité + lits disponibles)
-    
--   Le backend calcule distance/durée via ORS
-    
--   Le backend retourne l’hôpital minimisant la durée (critère principal)
-    
-
-3.  Affichage du résultat
-    
-
--   Hôpital recommandé
-    
--   Lits disponibles
-    
--   Distance (km)
-    
--   Durée (minutes)
-    
--   Message “reason” expliquant la décision
-    
-
-4.  Réservation d’un lit
-    
-
--   Appel : POST /reservations
-    
--   Le frontend affiche une confirmation
-    
--   Le nombre de lits est mis à jour selon la réponse du backend
-    
-
-Remarque : la réservation est gérée côté backend avec codes HTTP explicites :
-
--   200 : réservation confirmée
-    
--   404 : hôpital introuvable
-    
--   409 : plus de lits disponibles
+-   retourne l’hôpital optimal (durée minimale)
     
 
 ----------
 
-## Endpoints backend utilisés
+### 3️⃣ Affichage du résultat
 
--   GET /specialities : liste des spécialités
+-   hôpital recommandé
     
--   GET /zones : liste des zones
+-   lits disponibles
     
--   POST /recommendations : recommandation d’hôpital
+-   distance (km)
     
--   POST /reservations : réservation d’un lit
+-   durée (minutes)
     
--   GET /health : healthcheck
-    
-
-----------
-
-## UX / UI
-
--   Interface responsive (Bootstrap)
-    
--   Feedback utilisateur :
-    
-    -   état de chargement
-        
-    -   message succès / erreur
-        
--   Bouton “Réserver” désactivé si aucune recommandation ou si plus de lits
+-   message expliquant la décision
     
 
 ----------
 
-## Limitations de la PoC
+### 4️⃣ Réservation
 
--   Pas d’authentification / autorisation
+Appel :
+
+POST /reservations
+
+Retour utilisateur :
+
+-   confirmation de réservation
     
--   Pas de gestion “patient”
+-   mise à jour du nombre de lits
     
--   Dépendance ORS (latence réseau / quotas / disponibilité)
+
+Codes gérés :
+
+• 200 → succès  
+• 404 → hôpital introuvable  
+• 409 → plus de lits
+
+----------
+
+## 🎨 UX / UI
+
+-   interface responsive (Bootstrap)
     
--   UI volontairement simple (objectif : démonstration et validation)
+-   messages de chargement
+    
+-   feedback succès / erreur
+    
+-   bouton réservation désactivé si non disponible
     
 
 ----------
 
-## Évolutions possibles
+## 🔐 Sécurité (approche PoC)
 
--   Cache côté backend des résultats ORS (couples zone/hôpital)
+-   échanges via API REST
     
--   Résilience : timeouts, circuit breaker, fallback
+-   configuration CORS côté backend
     
--   Recommandations multiples (Top 3)
+-   aucun stockage de données sensibles côté frontend
     
--   Monitoring/observabilité (metrics, dashboards)
+
+### Évolutions prévues
+
+-   authentification sécurisée (OAuth2 / JWT)
     
--   Sécurité (AuthN/AuthZ, chiffrement, audit)
+-   gestion des rôles utilisateurs
     
--   Gouvernance des référentiels (zones, spécialités)
+-   protection des routes sensibles
     
 
 ----------
 
-## Auteur
+## 🛡️ RGPD
+
+-   aucune donnée patient stockée côté frontend
+    
+-   affichage uniquement de données techniques (hôpitaux, distances, lits)
+    
+-   respect du principe de minimisation
+    
+
+----------
+
+## 🚀 Évolutions possibles
+
+-   recommandations multiples (Top 3)
+    
+-   affichage cartographique
+    
+-   cache des résultats
+    
+-   monitoring UX
+    
+-   amélioration UI
+    
+
+----------
+
+## 👤 Auteur
 
 Saliha Youbi  
 Projet OpenClassrooms – Architecte Logiciel
-
-----------
-
-## Licence
-
-Projet pédagogique (Proof of Concept) – usage académique uniquement

@@ -1,121 +1,248 @@
-# MedHead – Backend (Spring Boot) – PoC
+# ⚙️ MedHead – Backend (Spring Boot) – Proof of Concept
 
 Backend de la preuve de concept (PoC) MedHead.
 
-Le service recommande un hôpital en situation d’urgence selon :
-- la spécialité demandée
-- les lits disponibles
-- une distance routière simulée (matrice mock, sans API externe)
+Ce service expose une API REST permettant :
 
----
+-   de recommander un hôpital en situation d’urgence médicale selon :
+    
+    -   la spécialité demandée
+        
+    -   les lits disponibles
+        
+    -   la distance et durée réelles via OpenRouteService (ORS)
+        
+-   de réserver un lit en temps réel
+    
+-   de persister les données via PostgreSQL
+    
 
-## Prérequis
+----------
 
-- Java 21 (ou Java 17)
-- Maven ou Maven Wrapper (mvnw)
+## 🧱 Architecture technique
 
----
+-   Java 17
+    
+-   Spring Boot
+    
+-   Spring Web (API REST)
+    
+-   Spring Data JPA
+    
+-   PostgreSQL (exécution réelle)
+    
+-   H2 (tests automatisés en CI)
+    
+-   OpenRouteService (API de routage réel)
+    
 
-## Lancer l’application
+Découpage logique :
 
-Depuis la racine du projet.
+-   Controller : exposition des endpoints REST
+    
+-   Service : logique métier
+    
+-   Repository : accès aux données
+    
 
-### Option 1 – Maven Wrapper (recommandé)
+----------
 
-    ./mvnw spring-boot:run
+## ⚙️ Prérequis
 
-### Option 2 – Maven installé
+-   Java 17+
+    
+-   Maven ou Maven Wrapper
+    
+-   PostgreSQL en fonctionnement
+    
 
-    mvn spring-boot:run
+----------
 
-L’API démarre sur :
+## ▶️ Lancer l’application
 
-    http://localhost:8080
+Depuis le dossier `medhead-backend` :
 
----
+### Avec Maven Wrapper (recommandé)
 
-## Endpoints
+./mvnw spring-boot:run
 
-### GET /health
+### Avec Maven installé
 
-Vérifie que le service fonctionne.
+mvn spring-boot:run
 
-    curl http://localhost:8080/health
+API disponible sur :
 
----
+[http://localhost:8080](http://localhost:8080)
 
-### GET /specialities
+----------
 
-Retourne la liste des spécialités (PoC).
+## 🗄️ Base de données
 
-    curl http://localhost:8080/specialities
+La persistance est assurée par PostgreSQL.
 
----
+Tables principales :
 
-### GET /hospitals
+-   hospital
+    
+-   zone
+    
+-   hospital_speciality
+    
 
-Retourne la liste des hôpitaux depuis `hospitals.json`.
+Les données sont chargées au démarrage via scripts SQL.
 
-    curl http://localhost:8080/hospitals
+----------
 
----
+## 🔗 Endpoints principaux
 
-### POST /recommendations
+### 📍 POST /recommendations
 
-Recommande un hôpital selon :
-- spécialité
-- lits disponibles
-- distance routière simulée (`distance_matrix.json`)
+Recommande l’hôpital optimal selon :
 
-**Body attendu :**
-- speciality (string)
-- originZone (string)  
-  Exemples : LONDON_CENTRAL, LONDON_EAST, LONDON_SOUTH
+-   spécialité
+    
+-   disponibilité des lits
+    
+-   temps de trajet réel via ORS
+    
 
-**Exemple :**
+Exemple :
 
-    curl -X POST http://localhost:8080/recommendations \
-      -H "Content-Type: application/json" \
-      -d '{"speciality":"Cardiologie","originZone":"LONDON_CENTRAL"}'
+{  
+"speciality": "Cardiologie",  
+"originZone": "LONDON_CENTRAL"  
+}
 
----
+----------
 
-## Données PoC
+### 🛏️ POST /reservations
 
-Données fictives stockées dans :
-- src/main/resources/hospitals.json
-- src/main/resources/distance_matrix.json
+Réserve un lit dans un hôpital.
 
-La matrice simule une distance réellement parcourable sans API externe.  
-En production, elle serait remplacée par un service de routage réel.
+Exemple :
 
----
+{  
+"hospitalId": "HOSP-001"  
+}
 
-## Tests
+Réponses :
 
-Le projet inclut des **tests unitaires** et des **tests d’intégration légers**, adaptés au périmètre de la preuve de concept (PoC).
+• 200 OK – réservation confirmée  
+• 404 – hôpital introuvable  
+• 409 – plus de lits disponibles
 
-### Objectifs
-- Valider la logique métier de calcul de distance (matrice simulée)
-- Valider la logique de recommandation d’hôpital
-- Vérifier le fonctionnement des endpoints REST principaux
+----------
 
-### Types de tests
+### ❤️ GET /health
 
-#### Tests unitaires
-- `DistanceMatrixService` : validation du calcul de distance simulée
-- Vérification des règles de sélection (spécialité, lits disponibles)
+Healthcheck du service.
 
-#### Tests d’intégration
-- Tests des endpoints REST via le contrôleur de recommandations
-- Vérification des réponses HTTP et des messages retournés
+----------
 
-### Lancement des tests
-```bash
+## 🧪 Tests automatisés
+
+Exécution :
+
 ./mvnw test
 
-#### CI/CD
+Types de tests :
 
-- À venir :
-- pipeline build + tests
+-   tests unitaires de services métier
+    
+-   tests de contrôleurs REST (MockMvc)
+    
+-   tests avec OpenRouteService mocké
+    
+-   tests d’intégration avec base H2 (profil test)
+    
 
+Objectifs :
+
+✔ valider la logique métier  
+✔ garantir la stabilité des endpoints  
+✔ assurer la reproductibilité en CI
+
+----------
+
+## 🔄 Intégration continue
+
+Le backend est intégré dans un pipeline GitHub Actions :
+
+-   build Maven
+    
+-   exécution des tests automatisés
+    
+
+Objectif : qualité continue et détection de régressions.
+
+----------
+
+## 🔐 Sécurité (approche PoC)
+
+Dans le périmètre de la PoC :
+
+-   configuration CORS pour autoriser uniquement le frontend
+    
+-   séparation claire frontend/backend
+    
+-   secrets gérés via variables d’environnement (clé ORS)
+    
+-   aucune donnée patient stockée
+    
+
+### Sécurité prévue en production
+
+-   HTTPS/TLS
+    
+-   OAuth2 / OpenID Connect avec JWT
+    
+-   gestion des rôles utilisateurs
+    
+-   journalisation sécurisée
+    
+
+----------
+
+## 🛡️ RGPD – Privacy by Design
+
+La PoC applique une minimisation des données :
+
+-   aucune donnée personnelle de patient
+    
+-   uniquement des informations d’infrastructure hospitalière
+    
+
+En production :
+
+-   anonymisation
+    
+-   chiffrement
+    
+-   politiques de conservation
+    
+-   droit à l’oubli
+    
+-   traçabilité des accès
+    
+
+----------
+
+## 🚀 Évolutions possibles
+
+-   cache des résultats ORS
+    
+-   circuit breaker (Resilience4j)
+    
+-   monitoring et observabilité
+    
+-   authentification sécurisée
+    
+-   montée en charge progressive
+    
+
+----------
+
+## 👤 Auteur
+
+Saliha Youbi  
+Projet OpenClassrooms – Architecte Logiciel
