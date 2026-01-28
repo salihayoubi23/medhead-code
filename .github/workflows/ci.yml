@@ -14,11 +14,6 @@ jobs:
       run:
         working-directory: medhead-backend
 
-    env:
-      SPRING_PROFILES_ACTIVE: test
-      ORS_API_KEY: dummy
-      ORS_BASE_URL: http://localhost
-
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4
@@ -30,8 +25,8 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Tests backend
-        run: mvn -B -e -DtrimStackTrace=false test
+      - name: Tests backend (profil test + H2)
+        run: ./mvnw -B -e -DtrimStackTrace=false -Dspring.profiles.active=test test
 
       - name: Upload surefire reports (always)
         if: always()
@@ -41,7 +36,7 @@ jobs:
           path: medhead-backend/target/surefire-reports
 
       - name: Build backend
-        run: mvn -B package -DskipTests
+        run: ./mvnw -B package -DskipTests
 
   frontend:
     name: Vérification frontend
