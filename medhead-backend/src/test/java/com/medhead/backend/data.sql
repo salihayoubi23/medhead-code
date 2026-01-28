@@ -1,17 +1,13 @@
 -- ZONES
-INSERT INTO zone (id, name) VALUES ('LONDON_CENTRAL', 'London Central');
-INSERT INTO zone (id, name) VALUES ('LONDON_NORTH', 'London North');
+INSERT INTO zone (code, lat, lon) VALUES 
+('LONDON_CENTRAL', 51.5074, -0.1278);
 
 -- HOSPITALS
-INSERT INTO hospital (id, name, zone_id, available_beds) VALUES
-('HOSP-001', 'St Mary Hospital', 'LONDON_CENTRAL', 5),
-('HOSP-002', 'Royal London Hospital', 'LONDON_CENTRAL', 0),
-('HOSP-003', 'North General Hospital', 'LONDON_NORTH', 3);
+INSERT INTO hospital (id, name, available_beds, lat, lon) VALUES
+('HOSP-001', 'Central Hospital', 5, 51.5080, -0.1281),
+('HOSP-004', 'Emergency Hospital', 0, 51.5090, -0.1290);
 
--- HOSPITAL SPECIALITIES
+-- SPECIALITIES
 INSERT INTO hospital_speciality (hospital_id, speciality) VALUES
 ('HOSP-001', 'Cardiologie'),
-('HOSP-001', 'Médecine d urgence'),
-('HOSP-002', 'Cardiologie'),
-('HOSP-003', 'Neurologie'),
-('HOSP-003', 'Médecine d urgence');
+('HOSP-004', 'Cardiologie');
