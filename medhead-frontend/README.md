@@ -1,218 +1,234 @@
 
-# 🌐 MedHead – Frontend (React + Vite) – Proof of Concept
+# MedHead – Frontend (React + Vite) – PoC
 
-Frontend de la preuve de concept (PoC) MedHead.
+Frontend de la preuve de concept (PoC) **MedHead Consortium**.
 
-Cette application web permet de :
+Cette application web permet :
 
-• sélectionner une spécialité médicale  
-• sélectionner une zone d’origine  
-• obtenir une recommandation d’hôpital en temps réel  
-• réserver un lit dans l’hôpital recommandé
+-   de sélectionner une spécialité médicale (référentiel NHS exposé par le backend) ;
+    
+-   de sélectionner une zone d’origine ;
+    
+-   d’obtenir une recommandation d’hôpital (distance/durée calculées via ORS) ;
+    
+-   de réserver un lit dans l’hôpital recommandé (mise à jour des lits côté backend).
+    
 
-Le frontend consomme l’API REST fournie par le backend Spring Boot MedHead.
-
-----------
-
-## 🎯 Objectif du frontend
-
-L’objectif de cette interface est de démontrer :
-
-• une interaction fluide entre frontend et backend  
-• la faisabilité fonctionnelle de la recommandation d’hôpital  
-• une expérience utilisateur simple et claire  
-• une architecture frontend propre et maintenable
+Le frontend consomme une API Spring Boot (backend MedHead).
 
 ----------
 
-## 🛠️ Stack technique
+## Objectif de la PoC
 
-### Frontend
+L’objectif est de démontrer :
 
-• React 18  
-• Vite  
-• Bootstrap 5  
-• JavaScript ES6+
-
-### Backend consommé
-
-• Spring Boot (Java)  
-• API REST MedHead  
-• PostgreSQL  
-• OpenRouteService (ORS réel)
+-   un parcours fonctionnel “end-to-end” (recommandation → réservation),
+    
+-   une intégration front/back simple et claire,
+    
+-   une UI minimale mais opérationnelle,
+    
+-   une base saine pour évoluer vers une solution industrialisée.
+    
 
 ----------
 
-## 📁 Structure du projet
+## Stack technique
 
-src/  
-components/  
- Header.jsx  
- AlertBox.jsx  
- RecommendationForm.jsx  
- RecommendationResult.jsx
+Frontend :
 
-services/  
- api.jsx
+-   React
+    
+-   Vite
+    
+-   Bootstrap
+    
+-   JavaScript (ES6+)
+    
 
-App.jsx  
-main.jsx  
-App.css  
-index.css
+Dépendance backend :
 
-----------
-
-## 🧩 Rôle des principaux fichiers
-
-• App.jsx : orchestration globale de l’application  
-• components/ : composants UI réutilisables  
-• services/api.jsx : appels HTTP vers l’API backend  
-• Bootstrap : mise en forme responsive
+-   Spring Boot (API REST)
+    
+-   PostgreSQL (persistance des hôpitaux / zones / lits)
+    
+-   OpenRouteService (ORS) pour distance/durée “route réelle”
+    
 
 ----------
 
-## ⚙️ Prérequis
+## Prérequis
 
-• Node.js 18 ou supérieur  
-• npm  
-• Backend MedHead lancé sur [http://localhost:8080](http://localhost:8080)
-
-----------
-
-## ▶️ Lancer l’application
-
-### Étape 1 – Installer les dépendances
-
-npm install
+-   Node.js 18+ (recommandé)
+    
+-   npm
+    
+-   Backend MedHead démarré (par défaut sur `http://localhost:8080`)
+    
 
 ----------
 
-### Étape 2 – Lancer le serveur de développement
+## Installation et lancement
 
-npm run dev
+1.  Installer les dépendances :
+    
 
-----------
+-   npm install
+    
 
-Application accessible par défaut sur :
+2.  Lancer le serveur de dev :
+    
 
-[http://localhost:5173](http://localhost:5173)
+-   npm run dev
+    
 
-----------
+L’application est disponible sur :
 
-## 🔌 Configuration de l’API backend
-
-L’URL du backend est configurable via une variable d’environnement.
-
-Dans un fichier .env :
-
-VITE_API_BASE_URL=[http://localhost:8080](http://localhost:8080)
-
-Si non définie, la valeur par défaut est :
-
-[http://localhost:8080](http://localhost:8080)
+-   [http://localhost:5173](http://localhost:5173)
+    
 
 ----------
 
-## 🔄 Fonctionnement de l’application
+## Configuration de l’URL Backend
 
-### 1️⃣ Sélection de la demande
+L’URL du backend est configurable via variable d’environnement.
 
-L’utilisateur choisit :
+Dans un fichier `.env` à la racine du frontend (optionnel) :
 
-• une spécialité médicale  
-• une zone d’origine
+-   VITE_API_BASE_URL=[http://localhost:8080](http://localhost:8080)
+    
 
-----------
+Si non défini, l’application utilise :
 
-### 2️⃣ Recommandation
-
-Le frontend appelle :
-
-POST /recommendations
-
-Le backend applique :
-
-• filtrage par spécialité  
-• vérification des lits disponibles  
-• calcul distance et durée via ORS réel  
-• sélection de l’hôpital le plus pertinent
+-   [http://localhost:8080](http://localhost:8080)
+    
 
 ----------
 
-### 3️⃣ Affichage du résultat
+## Fonctionnement de l’application
 
-Sont affichés :
+1.  Sélection de la demande
+    
 
-• nom de l’hôpital recommandé  
-• nombre de lits disponibles  
-• distance en kilomètres  
-• durée estimée en minutes  
-• justification de la recommandation
+-   Choix de la spécialité
+    
+-   Choix de la zone d’origine
+    
 
-----------
+2.  Recommandation
+    
 
-### 4️⃣ Réservation d’un lit
+-   Appel : POST /recommendations
+    
+-   Le backend filtre les hôpitaux (spécialité + lits disponibles)
+    
+-   Le backend calcule distance/durée via ORS
+    
+-   Le backend retourne l’hôpital minimisant la durée (critère principal)
+    
 
-Le frontend appelle :
+3.  Affichage du résultat
+    
 
-POST /reservations
+-   Hôpital recommandé
+    
+-   Lits disponibles
+    
+-   Distance (km)
+    
+-   Durée (minutes)
+    
+-   Message “reason” expliquant la décision
+    
 
-Résultat :
+4.  Réservation d’un lit
+    
 
-• mise à jour du nombre de lits  
-• message de confirmation ou d’erreur
+-   Appel : POST /reservations
+    
+-   Le frontend affiche une confirmation
+    
+-   Le nombre de lits est mis à jour selon la réponse du backend
+    
 
-Codes gérés :
+Remarque : la réservation est gérée côté backend avec codes HTTP explicites :
 
-• 200 → réservation confirmée  
-• 404 → hôpital introuvable  
-• 409 → plus de lits disponibles
-
-----------
-
-## 🌐 Endpoints backend utilisés
-
-/specialities → récupération des spécialités  
-/zones → récupération des zones  
-/recommendations → recommandation d’hôpital  
-/reservations → réservation d’un lit
-
-----------
-
-## 🎨 UX & UI
-
-• interface responsive (Bootstrap)  
-• messages de chargement  
-• alertes de succès et d’erreur  
-• bouton de réservation désactivé si aucun lit disponible
-
-----------
-
-## 🧪 Limitations de la PoC
-
-• pas d’authentification utilisateur  
-• une seule recommandation retournée  
-• pas de cartographie interactive  
-• sécurité non implémentée  
-• supervision absente
-
-Ces choix sont cohérents avec un périmètre de preuve de concept.
+-   200 : réservation confirmée
+    
+-   404 : hôpital introuvable
+    
+-   409 : plus de lits disponibles
+    
 
 ----------
 
-## 🚀 Évolutions possibles
+## Endpoints backend utilisés
 
-• affichage de plusieurs hôpitaux classés  
-• carte géographique interactive  
-• mise en cache ORS  
-• gestion multi-utilisateurs  
-• sécurité et rôles  
-• supervision et monitoring
+-   GET /specialities : liste des spécialités
+    
+-   GET /zones : liste des zones
+    
+-   POST /recommendations : recommandation d’hôpital
+    
+-   POST /reservations : réservation d’un lit
+    
+-   GET /health : healthcheck
+    
 
 ----------
 
-## 👩‍💻 Auteur
+## UX / UI
+
+-   Interface responsive (Bootstrap)
+    
+-   Feedback utilisateur :
+    
+    -   état de chargement
+        
+    -   message succès / erreur
+        
+-   Bouton “Réserver” désactivé si aucune recommandation ou si plus de lits
+    
+
+----------
+
+## Limitations de la PoC
+
+-   Pas d’authentification / autorisation
+    
+-   Pas de gestion “patient”
+    
+-   Dépendance ORS (latence réseau / quotas / disponibilité)
+    
+-   UI volontairement simple (objectif : démonstration et validation)
+    
+
+----------
+
+## Évolutions possibles
+
+-   Cache côté backend des résultats ORS (couples zone/hôpital)
+    
+-   Résilience : timeouts, circuit breaker, fallback
+    
+-   Recommandations multiples (Top 3)
+    
+-   Monitoring/observabilité (metrics, dashboards)
+    
+-   Sécurité (AuthN/AuthZ, chiffrement, audit)
+    
+-   Gouvernance des référentiels (zones, spécialités)
+    
+
+----------
+
+## Auteur
 
 Saliha Youbi  
-Projet OpenClassrooms – Architecte Logiciel  
-GitHub : [https://github.com/salihayoubi23](https://github.com/salihayoubi23)
+Projet OpenClassrooms – Architecte Logiciel
+
+----------
+
+## Licence
+
+Projet pédagogique (Proof of Concept) – usage académique uniquement
