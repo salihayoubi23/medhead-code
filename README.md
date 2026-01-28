@@ -63,17 +63,20 @@ Copier le code
 
 ## 🚀 Lancer l’application
 
-### ▶️ Backend
+## ▶️ Backend
+
+Lancer le backend Spring Boot :
 
 ```bash
 cd medhead-backend
 mvn spring-boot:run
 Backend disponible sur :
 
-arduino
-Copier le code
 http://localhost:8080
+
 ▶️ Frontend
+Lancer le frontend React :
+
 bash
 Copier le code
 cd medhead-frontend
@@ -81,12 +84,13 @@ npm install
 npm run dev
 Frontend disponible sur :
 
-arduino
-Copier le code
 http://localhost:5173
+
 🔗 Endpoints principaux
 📍 Recommandation d’hôpital
 POST /recommendations
+
+Exemple de requête :
 
 json
 Copier le code
@@ -94,7 +98,7 @@ Copier le code
   "speciality": "Cardiologie",
   "originZone": "LONDON_CENTRAL"
 }
-Réponse :
+Exemple de réponse :
 
 json
 Copier le code
@@ -114,13 +118,13 @@ Copier le code
 {
   "hospitalId": "HOSP-004"
 }
-Réponse possible :
+Codes de retour :
 
 200 OK → réservation confirmée
 
-404 → hôpital introuvable
+404 Not Found → hôpital introuvable
 
-409 → plus de lits disponibles
+409 Conflict → plus de lits disponibles
 
 🧪 Tests automatisés
 Backend
@@ -146,7 +150,7 @@ Plan de test :
 bash
 Copier le code
 performance/medhead_test_charge.jmx
-Génération du rapport HTML :
+Génération du rapport HTML
 bash
 Copier le code
 jmeter -n \
@@ -154,12 +158,13 @@ jmeter -n \
  -l performance/results_postgres_ors.jtl \
  -e \
  -o performance/rapport_html
-Le rapport est ensuite disponible dans :
+Rapport disponible dans :
 
 bash
 Copier le code
 performance/rapport_html/index.html
-Caractéristiques des tests :
+Caractéristiques :
+
 appels répétés sur /recommendations
 
 ORS réel intégré
@@ -169,18 +174,20 @@ base PostgreSQL active
 1000 requêtes simulées
 
 🔄 Intégration continue (CI)
-Pipeline GitHub Actions :
+Pipeline :
 
 bash
 Copier le code
 .github/workflows/ci.yml
 À chaque push :
 
-✅ build backend
-✅ tests backend
-✅ build frontend
+build backend
 
-Objectif :
+tests backend
+
+build frontend
+
+Objectifs :
 
 garantir la qualité
 
@@ -191,12 +198,17 @@ assurer la reproductibilité
 📦 Livrables
 Ce dépôt contient :
 
-✔️ le code backend + frontend
-✔️ les tests automatisés
-✔️ les tests de charge JMeter
-✔️ le pipeline CI
+code backend + frontend
 
-Le reporting d’architecture et de performance est disponible dans le dépôt dédié medhead_architecture.
+tests automatisés
+
+tests de charge JMeter
+
+pipeline CI
+
+Le reporting est disponible dans le dépôt :
+
+medhead_architecture
 
 📊 Résumé des technologies
 Domaine	Technologies
@@ -208,7 +220,7 @@ Tests	JUnit, MockMvc
 Performance	Apache JMeter
 CI	GitHub Actions
 
-📌 Objectif de la PoC
+📌 Objectifs de la PoC
 Valider l’architecture microservices
 
 Tester l’intégration de services externes
