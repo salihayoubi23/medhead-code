@@ -20,20 +20,28 @@ async function httpJson(url, options) {
  * backend: ["Cardiologie", "Médecine d'urgence", ...]
  */
 export async function fetchSpecialities() {
-  return httpJson(`${API_BASE}/specialities`);
+  const data = await httpJson(`${API_BASE}/specialities`);
+  // data = [{name:"Cardiologie"}, ...]
+  return data.map((x) => x.name);
 }
 
+
 /**
- * Zones d’origine PoC (front-only).
- * (Si un jour tu ajoutes GET /zones côté backend, on remplacera.)
+ * Zones d’origine PoC 
  */
 export async function fetchOriginZones() {
-  return [
-    { value: "LONDON_CENTRAL", label: "London Central" },
-    { value: "LONDON_EAST", label: "London East" },
-    { value: "LONDON_SOUTH", label: "London South" },
-  ];
+  const zones = await httpJson(`${API_BASE}/zones`);
+
+  // adapter format backend -> format attendu par le front
+  return (zones || []).map(z => ({
+    value: z.code,
+    label: z.code.replace("_", " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+  }));
 }
+
+
+
+
 
 /**
  * POST /recommendations
