@@ -18,6 +18,9 @@ jobs:
       - name: Récupérer le code
         uses: actions/checkout@v4
 
+      - name: Autoriser l'exécution de mvnw
+        run: chmod +x mvnw
+
       - name: Installer Java
         uses: actions/setup-java@v4
         with:
