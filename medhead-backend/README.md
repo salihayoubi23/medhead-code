@@ -1,251 +1,121 @@
-
-# 📦 MedHead – Backend (Spring Boot) – Proof of Concept
+# MedHead – Backend (Spring Boot) – PoC
 
 Backend de la preuve de concept (PoC) MedHead.
 
-Ce service fournit une API REST permettant :
+Le service recommande un hôpital en situation d’urgence selon :
+- la spécialité demandée
+- les lits disponibles
+- une distance routière simulée (matrice mock, sans API externe)
 
-• de recommander un hôpital en situation d’urgence  
-• de prendre en compte la spécialité médicale  
-• de vérifier la disponibilité des lits en base PostgreSQL  
-• de calculer la distance et la durée via OpenRouteService (ORS réel)  
-• de réserver un lit avec mise à jour en base
+---
 
-----------
+## Prérequis
 
-## 🎯 Objectif du backend
+- Java 21 (ou Java 17)
+- Maven ou Maven Wrapper (mvnw)
 
-Valider techniquement :
+---
 
-• une architecture API REST en Java Spring Boot  
-• l’intégration d’un service externe de routage réel (ORS)  
-• la persistance en base PostgreSQL  
-• la robustesse via tests automatisés  
-• la performance sous charge
+## Lancer l’application
 
-----------
+Depuis la racine du projet.
 
-## ⚙️ Prérequis
+### Option 1 – Maven Wrapper (recommandé)
 
-• Java 17 ou Java 21  
-• Maven ou Maven Wrapper (mvnw)  
-• PostgreSQL  
-• Connexion Internet (pour ORS)
+    ./mvnw spring-boot:run
 
-----------
+### Option 2 – Maven installé
 
-## ▶️ Lancer l’application
-
-Depuis le dossier backend :
-
-Option recommandée (Maven Wrapper) :
-
-./mvnw spring-boot:run
-
-Ou avec Maven installé :
-
-mvn spring-boot:run
+    mvn spring-boot:run
 
 L’API démarre sur :
 
-[http://localhost:8080](http://localhost:8080)
+    http://localhost:8080
 
-----------
+---
 
-## 🗄️ Base de données
+## Endpoints
 
-La PoC utilise PostgreSQL pour stocker :
+### GET /health
 
-• les hôpitaux  
-• leurs spécialités  
-• les lits disponibles  
-• les zones géographiques
+Vérifie que le service fonctionne.
 
-La configuration est définie dans :
+    curl http://localhost:8080/health
 
-src/main/resources/application.properties
+---
 
-----------
+### GET /specialities
 
-## 🔗 Endpoints disponibles
+Retourne la liste des spécialités (PoC).
 
-### ❤️ Health check
+    curl http://localhost:8080/specialities
 
-GET /health
+---
 
-Permet de vérifier que l’application fonctionne.
+### GET /hospitals
 
-----------
+Retourne la liste des hôpitaux depuis `hospitals.json`.
 
-### 📚 Référentiels
+    curl http://localhost:8080/hospitals
 
-GET /specialities  
-→ retourne les spécialités disponibles
+---
 
-GET /zones  
-→ retourne les zones géographiques
+### POST /recommendations
 
-GET /hospitals  
-→ retourne les hôpitaux stockés en base
+Recommande un hôpital selon :
+- spécialité
+- lits disponibles
+- distance routière simulée (`distance_matrix.json`)
 
-----------
+**Body attendu :**
+- speciality (string)
+- originZone (string)  
+  Exemples : LONDON_CENTRAL, LONDON_EAST, LONDON_SOUTH
 
-### 📍 Recommandation d’hôpital
+**Exemple :**
 
-POST /recommendations
+    curl -X POST http://localhost:8080/recommendations \
+      -H "Content-Type: application/json" \
+      -d '{"speciality":"Cardiologie","originZone":"LONDON_CENTRAL"}'
 
-Recommande un établissement selon :
+---
 
-• spécialité demandée  
-• disponibilité des lits  
-• distance et durée ORS
+## Données PoC
 
-Exemple de requête :
+Données fictives stockées dans :
+- src/main/resources/hospitals.json
+- src/main/resources/distance_matrix.json
 
-{  
-"speciality": "Cardiologie",  
-"originZone": "LONDON_CENTRAL"  
-}
+La matrice simule une distance réellement parcourable sans API externe.  
+En production, elle serait remplacée par un service de routage réel.
 
-Exemple de réponse :
+---
 
-{  
-"hospitalId": "HOSP-004",  
-"hospitalName": "Hôpital St Mary Emergency",  
-"availableBeds": 2,  
-"distanceKm": 2.2,  
-"durationMin": 7,  
-"reason": "Choisi via ORS (distance réelle) + spécialité + lits"  
-}
+## Tests
 
-----------
-
-### 🛏️ Réservation de lit
-
-POST /reservations
-
-Exemple :
-
-{  
-"hospitalId": "HOSP-004"  
-}
-
-Codes de réponse :
-
-• 200 → réservation confirmée  
-• 404 → hôpital introuvable  
-• 409 → aucun lit disponible
-
-----------
-
-## 🧪 Tests automatisés
-
-Le backend inclut des tests unitaires et d’intégration couvrant les fonctionnalités critiques.
+Le projet inclut des **tests unitaires** et des **tests d’intégration légers**, adaptés au périmètre de la preuve de concept (PoC).
 
 ### Objectifs
-
-• valider la logique métier  
-• vérifier les endpoints REST  
-• sécuriser la réservation de lits  
-• garantir la stabilité des évolutions
-
-----------
+- Valider la logique métier de calcul de distance (matrice simulée)
+- Valider la logique de recommandation d’hôpital
+- Vérifier le fonctionnement des endpoints REST principaux
 
 ### Types de tests
 
-#### Tests de démarrage
+#### Tests unitaires
+- `DistanceMatrixService` : validation du calcul de distance simulée
+- Vérification des règles de sélection (spécialité, lits disponibles)
 
-• chargement du contexte Spring  
-• configuration JPA et base PostgreSQL
+#### Tests d’intégration
+- Tests des endpoints REST via le contrôleur de recommandations
+- Vérification des réponses HTTP et des messages retournés
 
-----------
-
-#### Tests de services
-
-• logique de recommandation  
-• gestion des lits disponibles  
-• intégration ORS
-
-----------
-
-#### Tests de contrôleurs
-
-• endpoint /recommendations  
-• endpoint /reservations  
-• gestion des cas d’erreur
-
-----------
-
-#### Tests avec ORS mocké
-
-• suppression de la dépendance réseau  
-• résultats reproductibles  
-• rapidité d’exécution en CI
-
-----------
-
-### Lancer les tests
-
-Depuis le dossier backend :
-
+### Lancement des tests
+```bash
 ./mvnw test
 
-Résultat attendu :
+#### CI/CD
 
-• tous les tests passent  
-• aucune erreur  
-• temps compatible CI
+- À venir :
+- pipeline build + tests
 
-----------
-
-## 📈 Performance
-
-Les tests de charge sont réalisés via Apache JMeter (dans le dépôt principal).
-
-Le backend a été validé avec :
-
-• ORS réel intégré  
-• PostgreSQL actif  
-• 1000 requêtes simulées
-
-Résultats :
-
-• 0 % d’erreurs  
-• temps de réponse moyen ~40 ms  
-• bonne stabilité sous charge
-
-----------
-
-## 🔄 Intégration continue
-
-Le backend est intégré dans un pipeline GitHub Actions :
-
-• build automatique  
-• exécution des tests backend  
-• vérification de la qualité
-
-À chaque push sur main.
-
-----------
-
-## 📌 Évolutions possibles
-
-Pour une version industrielle :
-
-• cache ORS pour limiter la latence  
-• résilience (timeouts, circuit breaker)  
-• sécurité (authentification, autorisation)  
-• monitoring et supervision  
-• montée en charge horizontale
-
-----------
-
-## ✅ Conclusion
-
-Ce backend démontre :
-
-✔ l’intégration réussie de services externes  
-✔ une persistance fiable en base relationnelle  
-✔ une architecture REST claire  
-✔ une qualité assurée par les tests  
-✔ une performance satisfaisante pour une PoC
