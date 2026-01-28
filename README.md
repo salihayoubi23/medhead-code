@@ -1,93 +1,103 @@
-📘 MedHead – Preuve de concept (PoC)
-🎯 Objectif
-Cette preuve de concept (PoC) a été réalisée pour le MedHead Consortium (NHS) afin de valider un service d’intervention d’urgence permettant :
+# MedHead – Proof of Concept (PoC)
 
-de recommander un hôpital en fonction :
+## 📌 Contexte
 
-d’une spécialité médicale,
+Le projet **MedHead** est une preuve de concept (PoC) réalisée pour un consortium médical (inspiré du NHS britannique) visant à valider une plateforme d’aide à la décision pour les interventions d’urgence.
 
-de la disponibilité des lits,
+L’objectif est de permettre :
 
-de la distance et durée de trajet réelles (OpenRouteService),
+- la **recommandation d’un hôpital** en fonction :
+  - de la spécialité médicale,
+  - de la disponibilité des lits,
+  - de la distance et durée de trajet réelles,
+- puis la **réservation d’un lit** en temps réel.
 
-puis de réserver un lit avec mise à jour persistée en base.
+Cette PoC valide les choix d’architecture et les performances avant une industrialisation.
 
-La PoC a été développée avec :
+---
 
-un backend Java / Spring Boot (API REST),
+## 🏗️ Architecture technique
 
-un frontend React (Vite) + Bootstrap,
+### Backend
+- Java 17+  
+- Spring Boot  
+- Spring Data JPA  
+- PostgreSQL  
+- Intégration réelle de **OpenRouteService (ORS)** pour le routage  
 
-une base PostgreSQL,
+### Frontend
+- React (Vite)
+- Bootstrap
 
-un service de routage réel OpenRouteService (ORS).
+### Qualité & Industrialisation
+- Tests unitaires et d’intégration (JUnit, MockMvc)
+- Tests de charge Apache JMeter
+- Pipeline CI GitHub Actions
 
-📁 Contenu du dépôt
-medhead-backend/ : backend Spring Boot + PostgreSQL + ORS + tests
+---
 
-medhead-frontend/ : frontend React
+## 📁 Structure du dépôt
 
-performance/ : tests de montée en charge (JMeter + rapports)
+medhead-code/
+│
+├── medhead-backend/ # Backend Spring Boot + tests
+├── medhead-frontend/ # Frontend React
+├── performance/ # Tests de charge JMeter + rapports
+├── .github/workflows/ # Pipeline CI
+└── README.md
 
-.github/workflows/ci.yml : pipeline d’intégration continue
+yaml
+Copier le code
 
-README.md : documentation du projet
+---
 
-🧰 Prérequis
-Java 17+ (ou 21)
+## ⚙️ Prérequis
 
-Maven
+- Java 17 ou supérieur  
+- Maven  
+- Node.js 18+  
+- npm  
+- PostgreSQL (via docker-compose ou local)
 
-Node.js  (18+ recommandé)
+---
 
-npm
+## 🚀 Lancer l’application
 
-Docker Desktop (pour PostgreSQL)
+### ▶️ Backend
 
-🗄️ Lancer la base de données (PostgreSQL)
-Depuis medhead-backend/ :
-
-bash
-docker compose up -d
-⚙️ Configurer OpenRouteService
-Dans :
-
-Code
-medhead-backend/src/main/resources/application.properties
-Renseigner :
-
-Code
-ors.api.key=VOTRE_CLE_ORS
-ors.profile=driving-car
-🚀 Lancer le backend
-bash
+```bash
 cd medhead-backend
 mvn spring-boot:run
 Backend disponible sur :
-👉 http://localhost:8080
 
-💻 Lancer le frontend
+arduino
+Copier le code
+http://localhost:8080
+▶️ Frontend
 bash
+Copier le code
 cd medhead-frontend
 npm install
 npm run dev
 Frontend disponible sur :
-👉 http://localhost:5173
 
-🔌 Endpoints principaux
-🏥 Recommandation
+arduino
+Copier le code
+http://localhost:5173
+🔗 Endpoints principaux
+📍 Recommandation d’hôpital
 POST /recommendations
 
-Exemple de requête :
-
 json
+Copier le code
 {
   "speciality": "Cardiologie",
   "originZone": "LONDON_CENTRAL"
 }
-Exemple de réponse :
+Réponse :
 
 json
+Copier le code
 {
   "hospitalId": "HOSP-004",
   "hospitalName": "Hôpital St Mary Emergency",
@@ -96,99 +106,113 @@ json
   "durationMin": 7,
   "reason": "Choisi via ORS (distance réelle) + spécialité + lits"
 }
-🛏️ Réservation
+🛏️ Réservation de lit
 POST /reservations
 
 json
+Copier le code
 {
   "hospitalId": "HOSP-004"
 }
-Codes HTTP
-Code	Signification
-200	Réservation confirmée
-404	Hôpital introuvable
-409	Aucun lit disponible
+Réponse possible :
+
+200 OK → réservation confirmée
+
+404 → hôpital introuvable
+
+409 → plus de lits disponibles
+
 🧪 Tests automatisés
 Backend
 bash
+Copier le code
 cd medhead-backend
 mvn test
-Les tests couvrent :
+Types de tests :
 
-démarrage Spring
+tests de démarrage Spring
 
-logique métier (recommandation, réservation)
+tests de logique métier
 
-endpoints REST
+tests des contrôleurs REST
 
-👉 Les appels ORS sont mockés pour garantir reproductibilité et rapidité.
+tests de réservation
 
-Frontend
+tests avec ORS mocké pour reproductibilité
+
+📈 Tests de performance (JMeter)
+Plan de test :
+
 bash
-cd medhead-frontend
-npm install
-npm run build
-📈 Tests de montée en charge (JMeter)
-Scénarios disponibles dans :
-
-Code
+Copier le code
 performance/medhead_test_charge.jmx
-Principe :
+Génération du rapport HTML :
+bash
+Copier le code
+jmeter -n \
+ -t performance/medhead_test_charge.jmx \
+ -l performance/results_postgres_ors.jtl \
+ -e \
+ -o performance/rapport_html
+Le rapport est ensuite disponible dans :
 
-backend lancé sur http://localhost:8080
-
+bash
+Copier le code
+performance/rapport_html/index.html
+Caractéristiques des tests :
 appels répétés sur /recommendations
 
-Génération d’un rapport HTML :
+ORS réel intégré
 
-bash
-jmeter -n -t performance/medhead_test_charge.jmx \
-       -l performance/results.jtl \
-       -e -o performance/rapport_html
-Les résultats incluent :
+base PostgreSQL active
 
-temps de réponse
+1000 requêtes simulées
 
-taux d’erreur
-
-throughput
-
-métriques APDEX
-
-⚠️ Les performances incluent la latence ORS réelle (service externe).
-
-🔄 Intégration continue
+🔄 Intégration continue (CI)
 Pipeline GitHub Actions :
 
-Code
+bash
+Copier le code
 .github/workflows/ci.yml
-À chaque push sur main :
+À chaque push :
 
-build backend
+✅ build backend
+✅ tests backend
+✅ build frontend
 
-tests backend
+Objectif :
 
-build frontend
+garantir la qualité
 
-🌿 Workflow Git
-Branche principale : main
+détecter les régressions
 
-Commits fréquents et traçables
+assurer la reproductibilité
 
-Validation automatique par CI
+📦 Livrables
+Ce dépôt contient :
 
-📝 Remarques
-L’intégration ORS apporte une variabilité naturelle (latence réseau + quotas).
+✔️ le code backend + frontend
+✔️ les tests automatisés
+✔️ les tests de charge JMeter
+✔️ le pipeline CI
 
-En industrialisation :
+Le reporting d’architecture et de performance est disponible dans le dépôt dédié medhead_architecture.
 
-cache ORS
+📊 Résumé des technologies
+Domaine	Technologies
+Backend	Java, Spring Boot, JPA
+Base de données	PostgreSQL
+Routage	OpenRouteService
+Frontend	React, Vite
+Tests	JUnit, MockMvc
+Performance	Apache JMeter
+CI	GitHub Actions
 
-timeouts
+📌 Objectif de la PoC
+Valider l’architecture microservices
 
-circuit breakers
+Tester l’intégration de services externes
 
-monitoring
+Mesurer les performances
 
-👤 Auteur
-PoC réalisée dans le cadre du projet MedHead – Architecte Logiciel.
+Préparer l’industrialisation
