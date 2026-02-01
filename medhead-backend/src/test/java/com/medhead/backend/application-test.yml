@@ -13,3 +13,13 @@ spring:
   sql:
     init:
       mode: always
+
+# ✅ Valeurs "safe" pour les tests (évite dépendance aux secrets CI)
+ors:
+  api:
+    key: dummy-test-key
+  profile: driving-car
+
+jwt:
+  secret: medhead-poc-jwt-secret-change-me-1234567890
+  expiration-minutes: 60
