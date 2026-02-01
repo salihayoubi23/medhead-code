@@ -1,153 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  fetchOriginZones,
-  fetchSpecialities,
-  recommendHospital,
-  reserveBed,
-} from "./services/api";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import Header from "./components/Header";
-import AlertBox from "./components/AlertBox";
-import RecommendationForm from "./components/RecommendationForm";
-import RecommendationResult from "./components/RecommendationResult";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+import RequireAuth from "./routes/RequireAuth";
 
 export default function App() {
-  const [specialities, setSpecialities] = useState([]);
-  const [zones, setZones] = useState([]);
-
-  const [selectedSpeciality, setSelectedSpeciality] = useState("");
-  const [selectedZone, setSelectedZone] = useState("");
-
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [alert, setAlert] = useState(null); // { type, message }
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function init() {
-      try {
-        const [specs, z] = await Promise.all([fetchSpecialities(), fetchOriginZones()]);
-        if (cancelled) return;
-
-        const normalizedSpecs = (specs || [])
-          .map((s) => (typeof s === "string" ? s : s?.name))
-          .filter(Boolean);
-
-        setSpecialities(normalizedSpecs);
-        setZones(z || []);
-
-        setSelectedSpeciality(normalizedSpecs[0] || "");
-        setSelectedZone((z?.[0]?.value) || "");
-      } catch (e) {
-        if (cancelled) return;
-        setAlert({ type: "danger", message: e.message || "Erreur au chargement." });
-      }
-    }
-
-    init();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const selectedZoneLabel = useMemo(() => {
-    return zones.find((x) => x.value === selectedZone)?.label || selectedZone || "—";
-  }, [zones, selectedZone]);
-
-  async function onRecommend(e) {
-    e.preventDefault();
-    if (!selectedSpeciality || !selectedZone) return;
-
-    setLoading(true);
-    setAlert(null);
-
-    try {
-      const data = await recommendHospital({
-        speciality: selectedSpeciality,
-        originZone: selectedZone,
-      });
-
-      setResult(data);
-
-      if (!data?.hospitalName) {
-        setAlert({ type: "info", message: data?.reason || "Aucun hôpital recommandé." });
-      } else {
-        setAlert({ type: "success", message: "Recommandation obtenue." });
-      }
-    } catch (e2) {
-      setResult(null);
-      setAlert({ type: "danger", message: e2.message || "Erreur recommandation." });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function onReserve() {
-    if (!result?.hospitalId) return;
-
-    setLoading(true);
-    setAlert(null);
-
-    try {
-      const r = await reserveBed(result.hospitalId);
-
-      setResult((prev) => ({
-        ...prev,
-        availableBeds: r.remainingBeds,
-      }));
-
-      setAlert({ type: "success", message: r.message || "Lit réservé." });
-    } catch (e) {
-      setAlert({ type: "danger", message: e.message || "Erreur réservation." });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function onReset() {
-    setResult(null);
-    setAlert(null);
-  }
-
   return (
-    <div className="bg-light min-vh-100">
-      <div className="container py-4" style={{ maxWidth: 980 }}>
-        <Header />
+    <Routes>
+      {/* redirect root */}
+      <Route path="/" element={<Navigate to="/home" replace />} />
 
-        <AlertBox alert={alert} />
+      {/* public */}
+      <Route path="/login" element={<Login />} />
 
-        <div className="row g-3">
-          <div className="col-12 col-lg-5">
-            <RecommendationForm
-              loading={loading}
-              specialities={specialities}
-              zones={zones}
-              selectedSpeciality={selectedSpeciality}
-              selectedZone={selectedZone}
-              onChangeSpeciality={setSelectedSpeciality}
-              onChangeZone={setSelectedZone}
-              onSubmit={onRecommend}
-            />
-          </div>
+      {/* protected group */}
+      <Route element={<RequireAuth />}>
+        <Route path="/home" element={<Home />} />
+      </Route>
 
-          <div className="col-12 col-lg-7">
-            <RecommendationResult
-              loading={loading}
-              result={result}
-              selectedSpeciality={selectedSpeciality}
-              selectedZoneLabel={selectedZoneLabel}
-              onReset={onReset}
-              onReserve={onReserve}
-            />
-          </div>
-        </div>
-
-        <div className="text-center text-secondary small mt-4">
-          Front : <span className="font-monospace">:5173</span> · Backend :{" "}
-          <span className="font-monospace">:8080</span>
-        </div>
-      </div>
-    </div>
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
