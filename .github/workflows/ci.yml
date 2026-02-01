@@ -33,7 +33,7 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Tests backend (H2 + data.sql forcé)
+            - name: Tests backend (H2 + data.sql forcé)
         run: |
           ./mvnw -B -e -DtrimStackTrace=false \
           -Dspring.profiles.active=test \
