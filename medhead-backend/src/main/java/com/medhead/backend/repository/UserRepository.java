@@ -7,7 +7,7 @@ import com.medhead.backend.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findByEmailHash(String emailHash);
 
-    boolean existsByEmail(String email);
+    boolean existsByEmailHash(String emailHash);
 }

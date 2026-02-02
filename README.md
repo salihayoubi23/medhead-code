@@ -5,22 +5,23 @@ Cette preuve de concept a été réalisée pour le consortium **MedHead** afin d
 
 Elle permet :
 
-• de recommander un hôpital en fonction d’une spécialité, d’une zone d’origine et du temps de trajet réel  
+• de recommander un hôpital selon une spécialité, une zone d’origine et un temps de trajet réel (OpenRouteService)  
 • de réserver un lit en temps réel  
-• de mesurer les performances sous charge  
-• de valider une architecture orientée microservices avec intégration continue
+• de sécuriser l’accès via authentification JWT  
+• de protéger les données sensibles en base (chiffrement)  
+• de valider une architecture moderne avec tests et CI/CD
 
 ----------
 
 ## 🧱 Architecture générale
 
-La PoC repose sur les composants suivants :
+La PoC repose sur :
 
-Backend : Java / Spring Boot (API REST)  
-Base de données : PostgreSQL  
-Routage : OpenRouteService (ORS – distance et durée réelles)  
+Backend : Java / Spring Boot (API REST sécurisée)  
+Base de données : PostgreSQL (production) + H2 (tests CI)  
+Routage : OpenRouteService (distance et durée réelles)  
 Frontend : React + Vite + Bootstrap  
-Tests : JUnit, MockMvc, H2 pour CI  
+Tests : JUnit, MockMvc, H2  
 Performance : Apache JMeter  
 CI/CD : GitHub Actions
 
@@ -29,33 +30,30 @@ CI/CD : GitHub Actions
 ## 📂 Contenu du dépôt
 
 medhead-backend/  
-→ Backend Spring Boot + persistance PostgreSQL + tests automatisés
+→ API Spring Boot sécurisée + persistance PostgreSQL + tests automatisés
 
 medhead-frontend/  
-→ Application web React connectée à l’API
+→ Application React connectée à l’API sécurisée
 
 performance/  
-→ Scénarios JMeter + rapports HTML de performance
+→ Scénarios JMeter + rapports HTML
 
 .github/workflows/ci.yml  
-→ Pipeline d’intégration continue
+→ Pipeline CI
 
 ----------
 
-## ⚙️ Prérequis
+## ⚙️ Prérequis backend
 
 • Java 17+  
 • Maven  
-• Node.js 18+  
-• npm  
-• PostgreSQL  
-• Apache JMeter (optionnel – pour tests de charge)
+• PostgreSQL
 
 ----------
 
 ## ▶️ Lancer le backend
 
-Se placer dans le dossier :
+Dans :
 
 cd medhead-backend
 
@@ -63,27 +61,8 @@ Puis :
 
 mvn spring-boot:run
 
-Backend disponible sur :  
+API disponible sur :  
 [http://localhost:8080](http://localhost:8080)
-
-----------
-
-## ▶️ Lancer le frontend
-
-Se placer dans :
-
-cd medhead-frontend
-
-Installer :
-
-npm install
-
-Lancer :
-
-npm run dev
-
-Frontend disponible sur :  
-[http://localhost:5173](http://localhost:5173)
 
 ----------
 
@@ -108,7 +87,7 @@ Réponse :
 "availableBeds": 3,  
 "distanceKm": 2.2,  
 "durationMin": 7,  
-"reason": "Choisi via ORS (distance réelle) + spécialité + lits disponibles"  
+"reason": "Choisi via ORS + spécialité + lits disponibles"  
 }
 
 ----------
@@ -125,25 +104,49 @@ Exemple :
 
 Codes :
 
-• 200 → réservation confirmée  
-• 404 → hôpital introuvable  
-• 409 → plus de lits disponibles
+200 → réservation confirmée  
+404 → hôpital introuvable  
+409 → plus de lits disponibles
 
 ----------
 
-## 🧪 Tests automatisés
+### 🔐 Authentification
 
-Backend :
+POST /auth/login
+
+Exemple :
+
+{  
+"email": "admin@medhead.local",  
+"password": "Admin123!"  
+}
+
+Réponse :
+
+{  
+"token": "JWT_TOKEN"  
+}
+
+➡️ Le token JWT doit être envoyé ensuite dans les requêtes protégées :
+
+Authorization: Bearer JWT_TOKEN
+
+----------
+
+## 🧪 Tests automatisés backend
+
+Dans :
 
 cd medhead-backend  
 mvn test
 
-Types de tests :
+Tests implémentés :
 
-• tests de services métier  
-• tests de contrôleurs REST  
-• tests avec ORS mocké  
-• tests d’intégration avec base H2 (CI)
+• tests unitaires des services métier  
+• tests des contrôleurs REST (MockMvc)  
+• tests avec OpenRouteService mocké  
+• tests d’intégration avec base H2  
+• tests sécurité (authentification + endpoints protégés)
 
 ----------
 
@@ -153,7 +156,7 @@ Scénario JMeter :
 
 performance/medhead_test_charge.jmx
 
-Génération rapport :
+Rapport HTML :
 
 jmeter -n  
 -t performance/medhead_test_charge.jmx  
@@ -165,72 +168,85 @@ jmeter -n
 
 ## 🔄 Intégration continue (CI/CD)
 
-Pipeline GitHub Actions exécuté à chaque push :
+Pipeline GitHub Actions :
 
 ✔ build backend  
-✔ tests automatisés backend  
+✔ exécution des tests backend  
 ✔ build frontend
 
 Objectifs :
 
 • qualité continue  
-• détection de régression  
-• reproductibilité
+• détection de régressions  
+• déploiement reproductible
 
 ----------
 
-## 🔐 Sécurité (approche PoC)
+## 🔐 Sécurité implémentée (PoC)
+
+### Authentification
+
+• Spring Security  
+• JWT (Bearer Token)  
+• endpoints protégés  
+• rôles utilisateurs
+
+### Protection des données en base (Data at Rest)
+
+• mot de passe utilisateur stocké hashé (BCrypt)  
+• email utilisateur stocké chiffré (AES-GCM)  
+• colonne email_hash (SHA-256) utilisée pour la recherche au login
+
+➡️ Les données sensibles ne sont jamais stockées en clair dans PostgreSQL.
+
+### Gestion des secrets
+
+• variables d’environnement via fichier .env (dev)  
+• JWT_SECRET  
+• ORS_API_KEY  
+• MEDHEAD_CRYPTO_KEY
+
+----------
+
+## 🛡️ RGPD – Privacy by Design (réellement appliqué)
 
 Dans la PoC :
 
-• configuration CORS pour limiter les origines autorisées  
-• séparation front/back via API REST  
-• utilisation de variables d’environnement pour les secrets (clé ORS)  
-• aucune donnée patient stockée
+✔ minimisation des données (pas de données patient)  
+✔ chiffrement des données sensibles utilisateur  
+✔ mots de passe jamais en clair  
+✔ séparation front/back sécurisée  
+✔ accès contrôlé via JWT
 
-### Sécurité prévue en production
+Principes RGPD respectés :
 
-• HTTPS/TLS  
-• OAuth2 / OpenID Connect (JWT)  
-• gestion des rôles utilisateurs  
-• audit des accès
-
-----------
-
-## 🛡️ RGPD – Privacy by Design
-
-La PoC applique la minimisation des données :
-
-• pas de données personnelles patient  
-• uniquement hôpitaux, zones et lits
-
-Évolutions prévues :
-
-• anonymisation  
-• chiffrement  
-• politiques de suppression  
-• traçabilité
+• protection des données au repos  
+• sécurité dès la conception  
+• limitation des accès
 
 ----------
 
 ## 🚀 Évolutions possibles
 
-• cache ORS  
-• circuit breaker (Resilience4j)  
-• monitoring  
-• authentification sécurisée  
-• recommandations multiples
+• OAuth2 / OpenID Connect  
+• HTTPS/TLS  
+• rotation des clés de chiffrement  
+• gestion multi-utilisateurs avancée  
+• monitoring & observabilité  
+• cache ORS
 
 ----------
 
 ## 🎯 Objectifs atteints
 
-✔ architecture microservices  
-✔ intégration service externe réel  
+✔ API REST sécurisée  
+✔ intégration service externe réel (ORS)  
 ✔ persistance PostgreSQL  
-✔ tests automatisés  
-✔ performance sous charge  
-✔ CI/CD opérationnelle
+✔ chiffrement données sensibles  
+✔ authentification JWT  
+✔ tests automatisés complets  
+✔ tests de charge  
+✔ CI/CD fonctionnelle
 
 ----------
 
@@ -238,5 +254,3 @@ La PoC applique la minimisation des données :
 
 Saliha Youbi  
 Projet OpenClassrooms – Architecte Logiciel
-
-----------

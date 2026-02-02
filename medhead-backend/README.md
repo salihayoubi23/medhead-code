@@ -2,71 +2,63 @@
 
 Backend de la preuve de concept (PoC) MedHead.
 
-Ce service expose une API REST permettant :
+Ce service expose une API REST sécurisée permettant :
 
--   de recommander un hôpital en situation d’urgence médicale selon :
+• de recommander un hôpital en situation d’urgence selon :
+
+-   la spécialité demandée
     
-    -   la spécialité demandée
-        
-    -   les lits disponibles
-        
-    -   la distance et durée réelles via OpenRouteService (ORS)
-        
--   de réserver un lit en temps réel
+-   les lits disponibles
     
--   de persister les données via PostgreSQL
+-   la distance et durée réelles via OpenRouteService (ORS)
     
+
+• de réserver un lit en temps réel
+
+• d’authentifier les utilisateurs via JWT
+
+• de persister les données dans PostgreSQL avec chiffrement des données sensibles
 
 ----------
 
 ## 🧱 Architecture technique
 
--   Java 17
-    
--   Spring Boot
-    
--   Spring Web (API REST)
-    
--   Spring Data JPA
-    
--   PostgreSQL (exécution réelle)
-    
--   H2 (tests automatisés en CI)
-    
--   OpenRouteService (API de routage réel)
-    
+Technologies :
+
+Java 17  
+Spring Boot  
+Spring Web (API REST)  
+Spring Data JPA  
+Spring Security + JWT  
+PostgreSQL (exécution réelle)  
+H2 (tests automatisés en CI)  
+OpenRouteService (API de routage réel)
 
 Découpage logique :
 
--   Controller : exposition des endpoints REST
-    
--   Service : logique métier
-    
--   Repository : accès aux données
-    
+Controller → exposition des endpoints REST  
+Service → logique métier  
+Repository → accès aux données
 
 ----------
 
 ## ⚙️ Prérequis
 
--   Java 17+
-    
--   Maven ou Maven Wrapper
-    
--   PostgreSQL en fonctionnement
-    
+Java 17+  
+Maven ou Maven Wrapper  
+PostgreSQL en fonctionnement
 
 ----------
 
 ## ▶️ Lancer l’application
 
-Depuis le dossier `medhead-backend` :
+Depuis le dossier medhead-backend :
 
-### Avec Maven Wrapper (recommandé)
+Avec Maven Wrapper (recommandé) :
 
 ./mvnw spring-boot:run
 
-### Avec Maven installé
+Avec Maven installé :
 
 mvn spring-boot:run
 
@@ -82,14 +74,12 @@ La persistance est assurée par PostgreSQL.
 
 Tables principales :
 
--   hospital
-    
--   zone
-    
--   hospital_speciality
-    
+hospital  
+zone  
+hospital_speciality  
+users
 
-Les données sont chargées au démarrage via scripts SQL.
+Les données sont chargées au démarrage via scripts SQL et seed applicatif.
 
 ----------
 
@@ -99,12 +89,9 @@ Les données sont chargées au démarrage via scripts SQL.
 
 Recommande l’hôpital optimal selon :
 
--   spécialité
-    
--   disponibilité des lits
-    
--   temps de trajet réel via ORS
-    
+• spécialité  
+• disponibilité des lits  
+• temps de trajet réel via ORS
 
 Exemple :
 
@@ -133,6 +120,29 @@ Réponses :
 
 ----------
 
+### 🔐 POST /auth/login
+
+Authentification utilisateur.
+
+Exemple :
+
+{  
+"email": "admin@medhead.local",  
+"password": "Admin123!"  
+}
+
+Réponse :
+
+{  
+"token": "JWT_TOKEN"  
+}
+
+➡️ Les endpoints métier sont protégés par :
+
+Authorization: Bearer JWT_TOKEN
+
+----------
+
 ### ❤️ GET /health
 
 Healthcheck du service.
@@ -147,98 +157,85 @@ Exécution :
 
 Types de tests :
 
--   tests unitaires de services métier
-    
--   tests de contrôleurs REST (MockMvc)
-    
--   tests avec OpenRouteService mocké
-    
--   tests d’intégration avec base H2 (profil test)
-    
+• tests unitaires des services métier  
+• tests de contrôleurs REST (MockMvc)  
+• tests avec OpenRouteService mocké  
+• tests d’intégration avec base H2  
+• tests de sécurité (auth + endpoints protégés)
 
 Objectifs :
 
 ✔ valider la logique métier  
-✔ garantir la stabilité des endpoints  
+✔ sécuriser les accès  
+✔ garantir la stabilité  
 ✔ assurer la reproductibilité en CI
 
 ----------
 
 ## 🔄 Intégration continue
 
-Le backend est intégré dans un pipeline GitHub Actions :
+Pipeline GitHub Actions :
 
--   build Maven
-    
--   exécution des tests automatisés
-    
+• build Maven  
+• exécution des tests backend  
+• vérification automatique à chaque push
 
 Objectif : qualité continue et détection de régressions.
 
 ----------
 
-## 🔐 Sécurité (approche PoC)
+## 🔐 Sécurité implémentée (PoC)
 
-Dans le périmètre de la PoC :
+### Authentification & accès
 
--   configuration CORS pour autoriser uniquement le frontend
-    
--   séparation claire frontend/backend
-    
--   secrets gérés via variables d’environnement (clé ORS)
-    
--   aucune donnée patient stockée
-    
+• Spring Security  
+• JWT Bearer Token  
+• endpoints protégés  
+• rôles utilisateurs
 
-### Sécurité prévue en production
+### Protection des données en base (Data at Rest)
 
--   HTTPS/TLS
-    
--   OAuth2 / OpenID Connect avec JWT
-    
--   gestion des rôles utilisateurs
-    
--   journalisation sécurisée
-    
+• mot de passe stocké hashé (BCrypt)  
+• email utilisateur stocké chiffré (AES-GCM)  
+• colonne email_hash (SHA-256) pour recherche sécurisée au login
+
+➡️ Les données sensibles ne sont jamais stockées en clair dans PostgreSQL.
+
+### Gestion des secrets
+
+Via variables d’environnement (.env en développement) :
+
+• JWT_SECRET  
+• ORS_API_KEY  
+• MEDHEAD_CRYPTO_KEY
 
 ----------
 
 ## 🛡️ RGPD – Privacy by Design
 
-La PoC applique une minimisation des données :
+Dans la PoC :
 
--   aucune donnée personnelle de patient
-    
--   uniquement des informations d’infrastructure hospitalière
-    
+✔ minimisation des données (aucune donnée patient)  
+✔ chiffrement des données sensibles utilisateur  
+✔ mots de passe jamais en clair  
+✔ accès sécurisé par authentification
 
-En production :
+Principes appliqués :
 
--   anonymisation
-    
--   chiffrement
-    
--   politiques de conservation
-    
--   droit à l’oubli
-    
--   traçabilité des accès
-    
+• sécurité dès la conception  
+• protection des données au repos  
+• contrôle des accès
 
 ----------
 
 ## 🚀 Évolutions possibles
 
--   cache des résultats ORS
-    
--   circuit breaker (Resilience4j)
-    
--   monitoring et observabilité
-    
--   authentification sécurisée
-    
--   montée en charge progressive
-    
+• HTTPS/TLS  
+• OAuth2 / OpenID Connect  
+• rotation des clés de chiffrement  
+• cache ORS  
+• circuit breaker (Resilience4j)  
+• monitoring & observabilité
 
 ----------
 

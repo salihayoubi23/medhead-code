@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.medhead.backend.model.User;
 import com.medhead.backend.repository.UserRepository;
+import com.medhead.backend.util.crypto.HashUtil;
 
 @Configuration
 public class UserSeedConfig {
@@ -23,10 +24,12 @@ public class UserSeedConfig {
 
             String email = "admin@medhead.local";
 
-            if (!userRepository.existsByEmail(email)) {
+            String emailHash = HashUtil.sha256HexLowerTrim(email);
+
+            if (!userRepository.existsByEmailHash(emailHash)) {
 
                 User admin = new User(
-                        email,
+                        email, // sera chiffré automatiquement par JPA
                         encoder.encode("Admin123!"),
                         "ROLE_ADMIN"
                 );

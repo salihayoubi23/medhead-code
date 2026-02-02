@@ -5,6 +5,7 @@ import com.medhead.backend.dto.LoginResponse;
 import com.medhead.backend.model.User;
 import com.medhead.backend.repository.UserRepository;
 import com.medhead.backend.service.JwtService;
+import com.medhead.backend.util.crypto.HashUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,7 +30,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        String emailHash = HashUtil.sha256HexLowerTrim(request.getEmail());
+        User user = userRepository.findByEmailHash(emailHash).orElse(null);
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -41,6 +43,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        // ici user.getEmail() renvoie l'email en clair (décrypté par JPA)
         String token = jwtService.generateToken(user.getEmail(), user.getRole());
 
         return ResponseEntity.ok(new LoginResponse(token));
