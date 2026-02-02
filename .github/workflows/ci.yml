@@ -14,11 +14,7 @@ jobs:
       run:
         working-directory: medhead-backend
 
-    # Tu peux garder env (ça ne gêne pas), mais les tests n'en dépendent plus
-    env:
-      ORS_API_KEY: ${{ secrets.ORS_API_KEY }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      JWT_EXPIRATION_MINUTES: ${{ secrets.JWT_EXPIRATION_MINUTES }}
+
 
     steps:
       - name: Récupérer le code
@@ -35,18 +31,7 @@ jobs:
           cache: maven
 
       - name: Tests backend (H2 + data.sql forcé)
-        run: |
-          ./mvnw -B -e -DtrimStackTrace=false \
-          -Dspring.profiles.active=test \
-          "-Dspring.datasource.url=jdbc:h2:mem:medhead_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE" \
-          -Dspring.datasource.driver-class-name=org.h2.Driver \
-          -Dspring.datasource.username=sa \
-          -Dspring.datasource.password= \
-          -Dspring.jpa.hibernate.ddl-auto=create-drop \
-          -Dspring.jpa.defer-datasource-initialization=true \
-          -Dspring.sql.init.mode=always \
-          -Dspring.sql.init.data-locations=classpath:data.sql \
-          test
+        run: ./mvnw -B -e -DtrimStackTrace=false -Dspring.profiles.active=test "-Dspring.datasource.url=jdbc:h2:mem:medhead_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE" -Dspring.datasource.driver-class-name=org.h2.Driver -Dspring.datasource.username=sa -Dspring.datasource.password= -Dspring.jpa.hibernate.ddl-auto=create-drop -Dspring.jpa.defer-datasource-initialization=true -Dspring.sql.init.mode=always -Dspring.sql.init.data-locations=classpath:data.sql test
 
       - name: Upload surefire reports (always)
         if: always()
