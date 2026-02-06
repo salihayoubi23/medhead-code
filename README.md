@@ -181,6 +181,45 @@ Objectifs :
 • déploiement reproductible
 
 ----------
+## 📌 Workflow Git & CI/CD du projet
+
+Le projet MedHead suit un workflow Git simple et structuré afin de garantir la qualité du code et la traçabilité des évolutions.
+
+### 🔀 Workflow Git
+
+• La branche principale `main` contient une version stable du projet  
+• Les développements sont réalisés localement puis validés par des commits réguliers  
+• Chaque modification est poussée sur le dépôt GitHub via `git push`
+
+Ce workflow permet :
+
+✔ un historique clair des évolutions  
+✔ une traçabilité des changements  
+✔ une intégration continue automatisée
+
+----------
+
+### ⚙️ Intégration continue avec GitHub Actions
+
+À chaque push sur la branche `main`, un pipeline GitHub Actions se déclenche automatiquement.
+
+Le pipeline exécute les étapes suivantes :
+
+1️⃣ Récupération du code source  
+2️⃣ Installation des dépendances backend (Maven)  
+3️⃣ Compilation du backend Spring Boot  
+4️⃣ Exécution des tests automatisés backend (H2 + ORS mocké)  
+5️⃣ Installation des dépendances frontend (npm)  
+6️⃣ Build de l’application React
+
+Objectifs du pipeline :
+
+✔ détecter rapidement les régressions  
+✔ garantir la stabilité du backend  
+✔ assurer la reproductibilité des builds  
+✔ maintenir une qualité continue du projet
+
+Ce mécanisme constitue une base solide pour une future industrialisation avec déploiements automatisés.
 
 ## 🔐 Sécurité implémentée (PoC)
 
